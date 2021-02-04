@@ -1,0 +1,11 @@
+{
+  "apollo": {
+    "studio": {
+      "baseUrl": "https://studio.apollographql.com/graph"
+    },
+    "graphqlUrl": "https://graphql.api.apollographql.com/api/graphql",
+    "timingHintsQuery": {
+     "percentile": 0.95
+    }
+  }
+}

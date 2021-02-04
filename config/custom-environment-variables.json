@@ -1,0 +1,16 @@
+{
+  "apollo": {
+    "studio": {
+      "username": "APOLLO_STUDIO_USERNAME",
+      "password": "APOLLO_STUDIO_PASSWORD",
+      "graph": "APOLLO_STUDIO_GRAPH",
+      "variant": "APOLLO_STUDIO_VARIANT"
+    }
+  },
+  "store": {
+    "s3": {
+      "bucket": "STORE_S3_BUCKET",
+      "region": "STORE_S3_REGION"
+    }
+  }
+}

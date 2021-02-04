@@ -1,0 +1,27 @@
+POST https://graphql.api.apollographql.com/api/graphql
+Content-Type: application/json
+cookie: "ajs_user_id=XXX; ajs_group_id=XXX; ajs_anonymous_id=XXX; _ga=GA1.2.702894912.1610789693; fs_uid=XXX; authtoken=XXX;"
+
+{
+  "operationName": "TimingHintsQuery",
+  "variables": {
+    "graphId": "XXX",
+    "filter": {
+      "or": [
+        {
+          "field": "Member.user:User!"
+        },
+        {
+          "field": "Query.members:[Member!]!"
+        }
+      ]
+    },
+    "percentile": 0.95
+  },
+  "extensions": {
+    "persistedQuery": {
+      "version": 1,
+      "sha256Hash": "9633fbdad37540cef510682843a0cc4b621e2fff9bc181230be5c7bfa298f5a3"
+    }
+  }
+}
