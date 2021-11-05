@@ -18,8 +18,8 @@ export async function fetchAndExtract(
     throw new Error(`Error while fetching ${queryMetadata.query} cause:${JSON.stringify(axiosResponse.data.errors)}`);
   }
   if (axiosResponse.data.data) {
-    if (axiosResponse.data.data.service.stats.fieldStats.length) {
-      const fieldStats = axiosResponse.data.data.service.stats.fieldStats.reduce(
+    if (axiosResponse.data.data.service.statsWindow.fieldLatencies.length) {
+      const fieldLatencies = axiosResponse.data.data.service.statsWindow.fieldLatencies.reduce(
         (acc: any, currentValue: FieldStat) => ({
           ...acc,
           [getFieldKey(currentValue)]: getDurationMs(currentValue)
@@ -27,7 +27,7 @@ export async function fetchAndExtract(
         queryMetadataResult
       );
       // eslint-disable-next-line no-param-reassign
-      queryMetadataResult = merge(queryMetadataResult, fieldStats);
+      queryMetadataResult = merge(queryMetadataResult, fieldLatencies);
     } else {
       console.info(
         `No timingHints results for "${queryMetadata.query}" (this could be due to not enough usage for Apollo Studio to collect statistics...)`
@@ -44,9 +44,12 @@ async function fetchMetrics(queryMetadata: QueryMetadata, timingHintsQueryHash: 
   const queryData = {
     operationName: 'TimingHintsQuery',
     variables: {
-      graphId: config.get('apollo.studio.variant'),
+      graphId: config.get('apollo.studio.graph'),
       filter: {
-        or: fieldsSelector
+        schemaTag: config.get('apollo.studio.variant'),
+        in: {
+          field: fieldsSelector
+        }
       },
       percentile: config.get('apollo.timingHintsQuery.percentile')
     },
@@ -57,7 +60,7 @@ async function fetchMetrics(queryMetadata: QueryMetadata, timingHintsQueryHash: 
       }
     }
   };
-  return instance.post(config.get('apollo.graphqlUrl'), queryData, {
+  return instance.post(`${config.get('apollo.graphqlUrl')}?operationName=TimingHintsQuery`, queryData, {
     headers: {
       'Content-Type': 'application/json',
       cookie: cookieHeader
@@ -71,19 +74,15 @@ function buildCookiesHeader(cookies: any) {
 
 /*
  Prepares field selector in this format:
-   {
-     'field': 'Member.user:User!'
-   },
-   {
-     'field': 'Query.members:[Member!]!'
-   }
+  ['Member.user:User!',
+    ...
+   'Query.members:[Member!]!',
+  ]
 */
 function prepareFieldSelector(queryMetadata: QueryMetadata) {
   return [
-    ...queryMetadata.fields!.map((field) => ({
-      field: `${queryMetadata.underlyingType}.${field.field}:${field.type}`
-    })),
-    { field: `Query.${queryMetadata.query}:${queryMetadata.type}` }
+    ...queryMetadata.fields!.map((field) => `${queryMetadata.underlyingType}.${field.field}:${field.type}`),
+    `Query.${queryMetadata.query}:${queryMetadata.type}`
   ];
 }
 

@@ -1,4 +1,4 @@
-import { eachSeries, asyncify, retry } from 'async';
+import { eachLimit, asyncify, retry } from 'async';
 import { fetchAndExtract } from '../apolloStudio/query/timingMetrics';
 import { generateQueriesMetadata, QueryMetadata } from '../schema/queriesMetadataGenerator';
 
@@ -7,8 +7,9 @@ export async function fetchQueryMetadata(timingHintsQueryHash: string, cookies: 
   const queriesMetadata = generateQueriesMetadata();
   const queryMetadataResult: Record<string, number> = {};
   // Use asyncify is necessary, as otherwise transpiled promises are mishandled by async.js functions!
-  await eachSeries(
+  await eachLimit(
     Object.values(queriesMetadata),
+    1,
     asyncify(async (queryMetadata: QueryMetadata) => {
       if (!queryMetadata.fields) {
         console.warn(`no fields found for ${queryMetadata.query}`); // E.g. union types?
@@ -33,7 +34,7 @@ export async function fetchQueryMetadata(timingHintsQueryHash: string, cookies: 
       await sleep(1000);
     })
   );
-  console.debug(queryMetadataResult);
+  console.info(queryMetadataResult);
   return queryMetadataResult;
 }
 

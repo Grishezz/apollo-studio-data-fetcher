@@ -37,9 +37,9 @@ async function newPage(browser: puppeteer.Browser) {
 }
 
 async function loginNavigateToExplorerPage(page: puppeteer.Page) {
-  const apolloStudioExplorerUrl = `${config.get('apollo.studio.baseUrl')}/${config.get('apollo.studio.graph')}/explorer?variant=${config.get(
-    'apollo.studio.variant'
-  )}`;
+  const apolloStudioExplorerUrl = `${config.get('apollo.studio.baseUrl')}/${config.get(
+    'apollo.studio.graph'
+  )}/explorer?variant=${config.get('apollo.studio.variant')}`;
   await page.goto(apolloStudioExplorerUrl);
   await page.waitForSelector('input[type="email"]');
   await page.type('input[type="email"]', config.get('apollo.studio.username'));
@@ -55,9 +55,12 @@ function listenOnTimingHintsQueryHash(page: puppeteer.Page): Promise<string> {
   });
   return new Promise((resolve) => {
     page.on('response', async (response) => {
-      if (response.url() === config.get('apollo.graphqlUrl') && response.request().method() === 'POST') {
+      if (
+        response.url() === `${config.get('apollo.graphqlUrl')}?operationName=TimingHintsQuery` &&
+        response.request().method() === 'POST'
+      ) {
         const body = await response.json();
-        const stats = get(body, 'data.service.stats');
+        const stats = get(body, 'data.service.statsWindow');
         if (stats) {
           const request: Request = response?.request()!;
           const timingHintsQueryHash: string = JSON.parse(request.postData()!).extensions.persistedQuery.sha256Hash;
